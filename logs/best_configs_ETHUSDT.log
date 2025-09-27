@@ -1,0 +1,2 @@
+[2025-09-24 10:52:16] Pair Name: ETHUSDT, Best Balance=56755.22, Config={'interval': '4h', 'cooldown': 7, 'loss_cap': -0.15, 'atr': 14, 'cooloff_bars': 20, 'sensitivity': 2, 'growth': 50, 'pair': 'ETHUSDT'}
+[2025-09-24 11:31:50] Pair Name: ETHUSDT, Best Balance=97596.65, Config={'interval': '4h', 'cooldown': 7, 'loss_cap': -0.13, 'atr': 7, 'cooloff_bars': 25, 'sensitivity': 2.25, 'growth': 40, 'pair': 'ETHUSDT'}

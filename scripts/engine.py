@@ -8,12 +8,14 @@ from scripts.util import rule_logger
 
 def run(config):
     df = fetch.get_ohlcv_data(config.DATABASE_PATH, config.TABLE_NAME, config.PAIR_NAME)
-
+    
     if df.empty:
         raise ValueError("No data found.")
+    #print(df.columns)
     df = fetch.resample_ohlcv(df, config.RESAMPLE_INTERVAL)
     df = compute.get_signals(df, config.ATR_PERIOD, config.SENSITIVITY, config.USE_HEIKIN_ASHI)                         # ATR + EMA(1) based signals
     df = volatility.add(df, config.TARGET_VOL, config.RESAMPLE_INTERVAL, config.HORIZON_DAYS, config.MAX_LEVERAGE)      # Add volatility targeting
+    
     # Crop here after all calculations have finished
     df = fetch.crop_date_range(df, config.YEARS_BACKTRACK)
     df = pattern_engineering.build_regime_features(df)
@@ -26,18 +28,26 @@ def run(config):
     should_avoid_trade = rule_logger.compile_rule_filter(rules)
     equity_df, trades_df = backtest.run(df, config, None, True)
     df = df.sort_index()
-    trades_df = trades_df.sort_values("time")
-    trades_df["time"] = pd.to_datetime(trades_df["time"])
-    # Merge stats into trades
-    trades_with_context = pd.merge_asof(
-        trades_df,
-        df[["candle_size", "candle_body", "total_wick"]],
-        left_on="time",
-        right_index=True,
-        direction="backward"
-    )
-    # Filter only losing trades
-    losing_trades = trades_with_context[trades_with_context["pnl"] < 0]
+    
+    # === Protect against empty trades_df ===
+    if trades_df.empty or "time" not in trades_df.columns:
+        trades_df = pd.DataFrame(columns=["type", "time", "price", "pnl", "leverage"])
+    else:
+        trades_df = trades_df.sort_values("time")
+        trades_df["time"] = pd.to_datetime(trades_df["time"])
+
+        # ✅ Merge candle stats into trades
+        trades_df = pd.merge_asof(
+            trades_df,
+            df[["candle_size", "candle_body", "total_wick"]],
+            left_on="time",
+            right_index=True,
+            direction="backward"
+        )
+
+        # Optional: Filter for losing trades only
+        losing_trades = trades_df[trades_df["pnl"] < 0]
+        # print(losing_trades[["time", "type", "price", "pnl", "candle_size", "candle_body", "total_wick"]].head())
 
     #print("❌ Losing Trades with Candle Info:")
     #print(losing_trades[["time", "type", "price", "pnl", "candle_size", "candle_body", "total_wick"]].head())

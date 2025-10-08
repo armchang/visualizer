@@ -45,7 +45,7 @@ def compute_metrics(equity_df, trades_df, interval="4h"):
     win_rate = (trades_df["pnl"] > 0).mean() if "pnl" in trades_df else np.nan
 
     if trades_df.empty or "type" not in trades_df.columns:
-        print("[Metrics] No trades recorded.")
+        #print("[Metrics] No trades recorded.")
         return {
             "Total Trades": 0,
             "Win Rate": 0.0,

@@ -32,7 +32,7 @@ if [ -d "$VENV_NAME" ]; then
     echo "🧹 Removing old virtual environment: $VENV_NAME"
     rm -rf $VENV_NAME
 fi
-
+    
 # Create new virtual environment
 echo "📦 Creating new virtual environment using Python $PYTHON_VERSION..."
 python -m venv $VENV_NAME

@@ -31,3 +31,7 @@ MAX_LEVERAGE = 3.0
 # Growth Cool-Off
 GROWTH_THRESHOLD = 0.50                 # 50% equity growth
 COOL_OFF_BARS_AFTER_GROWTH = 10         # skip this many bars after exit
+
+# Capital used every trade
+CAPITAL = 0.9
+LEVERAGE = 5

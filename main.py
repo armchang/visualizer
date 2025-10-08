@@ -1,21 +1,23 @@
 import itertools
 from tqdm import tqdm
+from config import config 
 import scripts.engine as engine
 import scripts.tracing.screen_output as so
 import scripts.util.clear_console as cc
 import scripts.plotters.plotter_tv as tv
 import scripts.util.logger as logger
-from config import config 
+import scripts.tracing.excel_output as excel
+import scripts.util.countdown as countdown
 
 def search_optimal_settings(pair):
     # Define parameter grid
-    intervals       = ["4h"] # 1h, 2h, 4h, 1d
-    cooldowns       = [7, 8, 10] # Increment by 5
-    loss_caps       = [-0.13, -0.15, -0.17] # Incremented by 0.05
-    atr_periods     = [7, 14]
-    cooloff_bars    = [20, 22, 23, 25]
-    sensitivity     = [1.75, 2, 2.25]
-    growth          = [40, 50, 60]
+    intervals       = ["15min", "30min", "1h", "2h"]                # 1h, 2h, 4h, 1d
+    cooldowns       = [10, 20]          # Increment by 5
+    loss_caps       = [-0.1, 0.125]         # Incremented by 0.05
+    atr_periods     = [14, 21]
+    cooloff_bars    = [25, 30]
+    sensitivity     = [1.5, 2]
+    growth          = [50, 100]
 
     # Prepare combinations
     param_grid = list(itertools.product(intervals, cooldowns, loss_caps, atr_periods, cooloff_bars, sensitivity, growth))
@@ -71,7 +73,7 @@ def search_optimal_settings(pair):
 if __name__ == "__main__":
     cc.run()
 
-    config.PAIR_NAME = "ETHUSDT"
+    config.PAIR_NAME = "BTCUSDT"
    
     choice = input("Do you want to search for optimal settings? (y/n): ").strip().lower()
 
@@ -122,6 +124,11 @@ if __name__ == "__main__":
 
         print("Best Config Loaded:", best_config)
         df, equity_df, trades_df, metrics = engine.run(config)
+
+    want_export_trades = countdown.countdown_input("Do you want to save trades to Excel file? \n", timeout=5, default="n")
+    if want_export_trades == "y":
+        excel.export(trades_df, True, "trades_entered")
+        excel.export(df, True, "ohclv_data")
 
     # Run charting in both cases
     tv.run(df, equity_df, trades_df, metrics, True)

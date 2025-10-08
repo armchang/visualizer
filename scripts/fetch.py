@@ -11,9 +11,9 @@ def get_ohlcv_data(db_path, table_name, pair_name):
             ORDER BY open_time ASC
         """
         # Retrieve the data from database
-        df = pd.read_sql(query, conn, params=(pair_name,), parse_dates=["open_time"])    
-        # Set index using both
-        df.set_index(["open_time"], inplace=True)
+        df = pd.read_sql(query, conn, params=(pair_name,), parse_dates=["open_time"])
+        df["open_time_index"] = df["open_time"]
+        df.set_index("open_time_index", inplace=True)
 
     return df
 
@@ -25,10 +25,17 @@ def crop_date_range(df, years):
     return df.loc[start_date:end_date]
 
 def resample_ohlcv(df, interval):
-    return df.resample(interval).agg({
+    resampled = df.resample(interval).agg({
         "open": "first",
         "high": "max",
         "low": "min",
         "close": "last",
         "volume": "sum"
     }).dropna()
+
+    # ✅ Restore open_time column using the resampled index
+    resampled["open_time"] = resampled.index
+
+    return resampled
+
+    

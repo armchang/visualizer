@@ -12,6 +12,7 @@ DAILY_LOSS_CAP = -0.1
 COOLDOWN_BARS = 25
 RESAMPLE_INTERVAL = "4h"
 ATR_PERIOD = 21
+STRATEGY = "scripts.strategies.ema_crossover"
 
 YEARS_BACKTRACK = 5
 TABLE_NAME = "ohclv"

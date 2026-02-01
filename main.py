@@ -12,11 +12,12 @@ if __name__ == "__main__":
     clear.run()
 
     config.PAIR_NAME = "BTCUSDT"
+    config.STRATEGY = 'scripts.strategies.trendline_break_retest'
     choice = input("Do you want to search for optimal settings? (y/n): ").strip().lower()
 
     if choice == "y":
         # Run full search
-        best_config, best_result, df, equity_df, trades_df, metrics = sos.search_optimal_settings(config.PAIR_NAME, 'scripts.strategies.trendline_break_retest')
+        best_config, best_result, df, equity_df, trades_df, metrics = sos.search_optimal_settings(config.PAIR_NAME, config.STRATEGY)
 
         # Apply best configuration
         config.RESAMPLE_INTERVAL            = best_config.get("interval", "4h")
@@ -29,6 +30,7 @@ if __name__ == "__main__":
         config.HARD_STOP_ATR                = best_config.get("hard_stop_atr", 1.5)
         config.MAX_BARS_IN_TRADE            = best_config.get("max_bars", 20)
         config.TRAIL_ATR                    = best_config.get("trail_atr", 2.0)
+        config.STRATEGY                     = best_config.get("strategy", "scripts.strategies.ema_crossover")
         
         # Store to log
         logger.log(best_config, best_result)
@@ -36,7 +38,7 @@ if __name__ == "__main__":
         # Use defaults from config.py
         print("\n⚡ Using default config.py settings...")
         try:
-            best_config = logger.load_best_config_from_log(f"logs/best_configs_{config.PAIR_NAME}.log")
+            best_config = logger.load_best_config_from_log(f"logs/best_configs_{config.PAIR_NAME}_{config.STRATEGY}.log")
         except Exception as e:
             print(f"⚠️ Failed to load best config from log: {e}")
             print("➡️ Falling back to default config.py settings...")
@@ -51,7 +53,8 @@ if __name__ == "__main__":
                 "growth": config.GROWTH_THRESHOLD,
                 "hard_stop_atr" : config.HARD_STOP_ATR,
                 "max_bars" : config.MAX_BARS_IN_TRADE,
-                "trail_atr" : config.TRAIL_ATR
+                "trail_atr" : config.TRAIL_ATR,
+                "strategy" : config.STRATEGY
             }
 
         # Apply best configuration
@@ -65,6 +68,7 @@ if __name__ == "__main__":
         config.HARD_STOP_ATR                = best_config.get("hard_stop_atr", 1.5)
         config.MAX_BARS_IN_TRADE            = best_config.get("max_bars", 20)
         config.TRAIL_ATR                    = best_config.get("trail_atr", 2.0)
+        config.STRATEGY                     = best_config.get("strategy", "scripts.strategies.ema_crossover")
 
         print("✅ Loaded best config from log:", best_config)
         df, equity_df, trades_df, metrics = engine.run(config)

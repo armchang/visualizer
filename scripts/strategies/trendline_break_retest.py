@@ -8,7 +8,7 @@ search_criteria = {
     "interval": ["1h"],
     "cooldowns": [20, 30],
     "daily_loss_cap": [-0.1],
-    "atr_periods": [14, 21],
+    "atr_periods": [21],
     "cooloff_bars": [14, 21, 28],
     "sensitivity": [1.5, 2.5],
     "growth": [50],

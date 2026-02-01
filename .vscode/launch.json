@@ -9,7 +9,7 @@
             "name": "Python: Current File",
             "type": "debugpy",
             "request": "launch",
-            "module": "${relativeFileDirname}.${fileBasenameNoExtension}",
+            "program":"${file}",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": false

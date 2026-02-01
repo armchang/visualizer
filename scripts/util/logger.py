@@ -13,26 +13,43 @@ def log(best_config, best_result):
         f.write(f"[{timestamp}] Pair Name: {best_config['pair']}, Best Balance={best_result:.2f}, Config={best_config}\n")
 
 
+import re
+import ast
+
 def load_best_config_from_log(filepath):
+    best_balance = float('-inf')
+    best_config = None
+
     with open(filepath, "r") as f:
-        lines = [line.strip() for line in f if line.strip()]
-    
-    if not lines:
-        raise ValueError("No valid config entries found in the log file.")
+        contents = f.read()
 
-    last_line = lines[-1]
-    
-    # Find where "Config=" starts
-    config_pos = last_line.find("Config=")
-    if config_pos == -1:
-        raise ValueError("No Config= found in the last log line.")
+    # Split by pattern: every occurrence of a timestamped entry
+    entries = re.findall(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\][^\[]+", contents)
 
-    config_str = last_line[config_pos + len("Config="):]
+    for entry in entries:
+        try:
+            # Extract Best Balance
+            match = re.search(r"Best Balance=([\d\.]+)", entry)
+            if not match:
+                continue
+            balance = float(match.group(1))
 
-    try:
-        # Safe parsing of the dictionary string
-        config_dict = ast.literal_eval(config_str)
-    except Exception as e:
-        raise ValueError(f"Error parsing config: {e}")
-    
-    return config_dict
+            # Extract config dictionary
+            config_pos = entry.find("Config=")
+            if config_pos == -1:
+                continue
+            config_str = entry[config_pos + len("Config="):]
+            config_dict = ast.literal_eval(config_str)
+
+            if balance > best_balance:
+                best_balance = balance
+                best_config = config_dict
+
+        except Exception as e:
+            print(f"Error parsing entry:\n{entry}\n{e}")
+            continue
+
+    if best_config is None:
+        raise ValueError("No valid best config found in log.")
+
+    return best_config

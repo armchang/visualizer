@@ -14,7 +14,10 @@ def get_ohlcv_data(db_path, table_name, pair_name):
         df = pd.read_sql(query, conn, params=(pair_name,), parse_dates=["open_time"])
         df["open_time_index"] = df["open_time"]
         df.set_index("open_time_index", inplace=True)
-
+        df = df.sort_index()
+        df.index = df.index.tz_localize(None)                                       # Remove timezone from index
+        if df.empty:
+            raise ValueError("No data found.")
     return df
 
 def crop_date_range(df, years):

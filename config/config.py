@@ -33,5 +33,12 @@ GROWTH_THRESHOLD = 0.50                 # 50% equity growth
 COOL_OFF_BARS_AFTER_GROWTH = 10         # skip this many bars after exit
 
 # Capital used every trade
-CAPITAL = 0.9
-LEVERAGE = 5
+CAPITAL = 0.9                           # Proportion in decimal percentage of capital used
+BACKTEST_LEVERAGE = 10                   # Using leverage for backtesting to achieve 100% in 6 months
+STOP_MULT = 1.5                         # Stop loss distance in ATR multiples — used in risk-based sizing
+BACKTEST_MAX_LOSS_PCTG = 0.015
+
+# Trend Break Retest Strategy
+MAX_BARS_IN_TRADE = 40
+TRAIL_ATR = 2.0
+HARD_STOP_ATR = 1.5

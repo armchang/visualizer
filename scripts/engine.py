@@ -1,73 +1,37 @@
 
 import numpy as np
 import pandas as pd
-from scripts import compute, backtest, fetch, metric
+from scripts import backtest, compute, fetch, metric
 from scripts.risk_controls import volatility
 from scripts.risk_controls import pattern_engineering
-from scripts.util import rule_logger
+from scripts.util import rule_logger, backtest_util
+from scripts.strategies.ema_crossover import EMACrossover
+from scripts.strategies.trendline_break_retest import TrendlineBreakRetestStrategy
 
 def run(config):
-    df = fetch.get_ohlcv_data(config.DATABASE_PATH, config.TABLE_NAME, config.PAIR_NAME)
+    strategy = TrendlineBreakRetestStrategy()
+
+    df = fetch.get_ohlcv_data(config.DATABASE_PATH, config.TABLE_NAME, config.PAIR_NAME)                                # Fetch all data based on config.PAIR_NAME         
+    df = fetch.resample_ohlcv(df, config.RESAMPLE_INTERVAL)                                                             # Recompute data based on timeframe
+    df = strategy.compute_signals(df, config)
+
+    if "signal" not in df.columns:
+        raise RuntimeError("Strategy did not create df['signal']")
     
-    if df.empty:
-        raise ValueError("No data found.")
-    #print(df.columns)
-    df = fetch.resample_ohlcv(df, config.RESAMPLE_INTERVAL)
-    df = compute.get_signals(df, config.ATR_PERIOD, config.SENSITIVITY, config.USE_HEIKIN_ASHI)                         # ATR + EMA(1) based signals
     df = volatility.add(df, config.TARGET_VOL, config.RESAMPLE_INTERVAL, config.HORIZON_DAYS, config.MAX_LEVERAGE)      # Add volatility targeting
-    
-    # Crop here after all calculations have finished
-    df = fetch.crop_date_range(df, config.YEARS_BACKTRACK)
-    df = pattern_engineering.build_regime_features(df)
-    df = compute.add_candle_stats(df)
-    
+    df = fetch.crop_date_range(df, config.YEARS_BACKTRACK)                                                              # Crop data with number of years
+    df = pattern_engineering.build_regime_features(df)                                                                  # Add more signals = EMA(50, 100), ADX, etc.
+    df = compute.add_candle_stats(df)                                                                                   # Add candle body, size, total wick
 
+    #rules = rule_logger.load_pattern_rules(config.PAIR_NAME, config.RESAMPLE_INTERVAL)                                  # Implements additional rules aside from main signals 
+    #should_avoid_trade = rule_logger.compile_rule_filter(rules)
 
-    rules = rule_logger.load_pattern_rules(config.PAIR_NAME, config.RESAMPLE_INTERVAL)
-    # 🛠 Compile should_avoid_trade function dynamically
-    should_avoid_trade = rule_logger.compile_rule_filter(rules)
-    equity_df, trades_df = backtest.run(df, config, None, True)
-    df = df.sort_index()
-    
-    # === Protect against empty trades_df ===
-    if trades_df.empty or "time" not in trades_df.columns:
-        trades_df = pd.DataFrame(columns=["type", "time", "price", "pnl", "leverage"])
-    else:
-        trades_df = trades_df.sort_values("time")
-        trades_df["time"] = pd.to_datetime(trades_df["time"])
+    # Backtesting starts here
+    equity_df, trades_df = backtest.run(df, config, strategy=strategy, should_avoid_trade=None, enable_short=True)
 
-        # ✅ Merge candle stats into trades
-        trades_df = pd.merge_asof(
-            trades_df,
-            df[["candle_size", "candle_body", "total_wick"]],
-            left_on="time",
-            right_index=True,
-            direction="backward"
-        )
-
-        # Optional: Filter for losing trades only
-        losing_trades = trades_df[trades_df["pnl"] < 0]
-        # print(losing_trades[["time", "type", "price", "pnl", "candle_size", "candle_body", "total_wick"]].head())
-
-    #print("❌ Losing Trades with Candle Info:")
-    #print(losing_trades[["time", "type", "price", "pnl", "candle_size", "candle_body", "total_wick"]].head())
-    
-    #if rules is None:
-    #    print("[engine] No saved rules found — computing from scratch. Filter will be applied next time bot is loaded.")
-    #    df_features = pattern_engineering.build_regime_features(df)
-    #    trades_ctx = pattern_engineering.attach_trade_context(df_features, trades_df, entry_col='time')
-    #    pattern_table = pattern_engineering.pattern_report(trades_ctx)
-    #    rules = pattern_engineering.propose_filters(pattern_table, min_trades=20, top_k_per_feature=2, loss_rate_floor=0.30)
-    #    rule_logger.save_pattern_rules(config.PAIR_NAME, config.RESAMPLE_INTERVAL, rules)
-
-    #print("trades_df.columns:", trades_df.columns.tolist())
-    #print("trades_df.head():\n", trades_df.head())
-    #print("Total trades recorded:", len(trades_df))
-
-    metrics = metric.compute_metrics(equity_df, trades_df, config.RESAMPLE_INTERVAL)
-
-    # Remove timezone from index
-    df.index = df.index.tz_localize(None)
+    # Print
+    trades_df = backtest_util.fix_entered_trades(trades_df, df)                                                         # Fixing empty trades here
+    metrics = metric.compute_metrics(equity_df, trades_df, config.RESAMPLE_INTERVAL)                                    # Retrieves equity, returns, averages, etc.
 
     return df, equity_df, trades_df, metrics
 

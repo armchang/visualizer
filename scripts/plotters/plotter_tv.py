@@ -6,6 +6,21 @@ from config import config
 
 def run(df, equity_df, trades_df, metrics, debug=False):
 
+    # Convert trades_df to simple records for HTML table
+    trades_view = trades_df.copy()
+
+    # Make sure time is printable (string) for the table
+    if "time" in trades_view.columns:
+        trades_view["time"] = pd.to_datetime(trades_view["time"]).astype(str)
+
+    # Fill missing expected columns safely (optional)
+    for col in ["pnl", "qty", "equity", "price"]:
+        if col not in trades_view.columns:
+            trades_view[col] = None
+            
+    trades_view["pnl"] = pd.to_numeric(trades_view.get("pnl"), errors="coerce").fillna(0)
+    trades_data = trades_view.to_dict(orient="records")
+
     # Add final equity balance to metrics
     metrics["Final Balance"] = round(equity_df.iloc[-1]['equity'], 2)
 
@@ -90,13 +105,16 @@ def run(df, equity_df, trades_df, metrics, debug=False):
     # ✅ Sort signals by time (optional but recommended)
     signals = sorted(signals, key=lambda x: x["time"])
 
-    # Drop missing values and convert timestamp
-    trailing_stop_data = (
-        df[["time", "trailing_stop"]]
-        .dropna()
-        .rename(columns={"trailing_stop": "value"})
-        .to_dict(orient="records")
+    trailing_stop_data = []
+
+    if "trailing_stop" in df.columns:
+        trailing_stop_data = (
+            df[["time", "trailing_stop"]]
+            .dropna()
+            .rename(columns={"trailing_stop": "value"})
+            .to_dict(orient="records")
     )
+    
     # Convert equity_df into [{time: ..., value: ...}] format
     equity_data = (
         equity_df[["time_unix", "equity"]]
@@ -104,23 +122,46 @@ def run(df, equity_df, trades_df, metrics, debug=False):
         .to_dict(orient="records")
     )
     
-    # SMA series for LightweightCharts (same as trailing_stop)
-    sma20_data = (
-        df[["time", "sma20"]]
-        .dropna()
-        .rename(columns={"sma20": "value"})
-        .to_dict(orient="records")
-    )
+    # ============================
+    # SMA LINES (UT-BOT ONLY)
+    # ============================
 
-    sma50_data = (
-        df[["time", "sma50"]]
-        .dropna()
-        .rename(columns={"sma50": "value"})
-        .to_dict(orient="records")
-    )
+    sma20_data = []
+    sma50_data = []
+    sma100_data = []
+    sma200_data = []
 
-    sma100_data = df[["time", "sma100"]].dropna().rename(columns={"sma100": "value"}).to_dict(orient="records")
-    sma200_data = df[["time", "sma200"]].dropna().rename(columns={"sma200": "value"}).to_dict(orient="records")
+    if "sma20" in df.columns:
+        sma20_data = (
+            df[["time", "sma20"]]
+            .dropna()
+            .rename(columns={"sma20": "value"})
+            .to_dict(orient="records")
+        )
+
+    if "sma50" in df.columns:
+        sma50_data = (
+            df[["time", "sma50"]]
+            .dropna()
+            .rename(columns={"sma50": "value"})
+            .to_dict(orient="records")
+        )
+
+    if "sma100" in df.columns:
+        sma100_data = (
+            df[["time", "sma100"]]
+            .dropna()
+            .rename(columns={"sma100": "value"})
+            .to_dict(orient="records")
+        )
+
+    if "sma200" in df.columns:
+        sma200_data = (
+            df[["time", "sma200"]]
+            .dropna()
+            .rename(columns={"sma200": "value"})
+            .to_dict(orient="records")
+        )
 
     # Flask app
     app = Flask(__name__)
@@ -298,5 +339,54 @@ def run(df, equity_df, trades_df, metrics, debug=False):
         sma200_data=sma200_data,
         pair_name=config.PAIR_NAME,
         timeline=config.RESAMPLE_INTERVAL)
+
+    @app.route("/trades")
+    def trades():
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Trades</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 12px; }
+                table { border-collapse: collapse; width: 100%; }
+                th, td { border: 1px solid #ddd; padding: 8px; font-size: 13px; }
+                th { background: #f5f5f5; text-align: left; }
+                tr:nth-child(even) { background: #fafafa; }
+                .pnl-pos { background: rgba(0, 200, 0, 0.12) !important; }
+                .pnl-neg { background: rgba(255, 0, 0, 0.12) !important; }
+            </style>
+        </head>
+        <body>
+            <h2>Trades</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>PNL</th>
+                        <th>Equity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in trades %}
+                    <tr class="{% if (t.get('pnl') or 0) > 0 %}pnl-pos{% elif (t.get('pnl') or 0) < 0 %}pnl-neg{% endif %}">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ t.get("time", "") }}</td>
+                        <td>{{ t.get("type", "") }}</td>
+                        <td>{{ "%.2f"|format(t.get("price", 0) or 0) }}</td>
+                        <td>{{ t.get("qty", "") }}</td>
+                        <td>{{ t.get("pnl", "") }}</td>
+                        <td>{{ t.get("equity", "") }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </body>
+        </html>
+        """, trades=trades_data)
 
     app.run(debug=debug, use_reloader=False)

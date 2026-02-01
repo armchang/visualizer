@@ -1,6 +1,14 @@
 import numpy as np
 
 def compute_metrics(equity_df, trades_df, interval="4h"):
+    exit_types = [
+        "SELL",
+        "BUY (COVER)",
+        "SELL (BREAKEVEN)",
+        "SELL (TIME)",
+        "SELL (STOP)",
+        "BUY (COVER B/E)"
+    ]
     periods_map = {
         "1d": 365,
         "1h": 24 * 365,
@@ -42,7 +50,15 @@ def compute_metrics(equity_df, trades_df, interval="4h"):
     equity_df["drawdown"] = drawdowns
 
     max_drawdown = equity_df["drawdown"].min()
-    win_rate = (trades_df["pnl"] > 0).mean() if "pnl" in trades_df else np.nan
+    #win_rate = (trades_df["pnl"] > 0).mean() if "pnl" in trades_df else np.nan
+    if "pnl" in trades_df:
+        closed_trades = trades_df.dropna(subset=["pnl"])
+        wins = (closed_trades["pnl"] > 0).sum()
+        losses = (closed_trades["pnl"] <= 0).sum()
+        win_rate = wins / (wins + losses)
+    else:
+        win_rate = np.nan
+
 
     if trades_df.empty or "type" not in trades_df.columns:
         #print("[Metrics] No trades recorded.")
@@ -61,5 +77,6 @@ def compute_metrics(equity_df, trades_df, interval="4h"):
             "Sharpe Ratio": round(sharpe, 3) if not np.isnan(sharpe) else None,
             "Max Drawdown": round(max_drawdown, 3) if not np.isnan(max_drawdown) else None,
             "Win Rate": round(win_rate, 3) if not np.isnan(win_rate) else None,
-            "Total Trades": trades_df[trades_df["type"] == "SELL"].shape[0]
+            "Total Trades": trades_df[trades_df["type"].isin(exit_types)].shape[0]
         }
+    

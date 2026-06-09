@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 # Resolve the project root directory
-PROJECT_ROOT = Path("/Users/user/Projects/dataspider")
+PROJECT_ROOT = Path("D:/Projects/Python/dataspider")
 
 # Absolute path to the SQLite database
 DATABASE_PATH = PROJECT_ROOT / 'datas' / 'dataspider.db'

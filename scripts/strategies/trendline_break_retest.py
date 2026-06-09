@@ -5,15 +5,15 @@ from scripts.strategies.base_strategy import BaseStrategy
 from scripts.compute import get_atr_wilder
 
 search_criteria = {
-    "interval": ["1h"],
-    "cooldowns": [20, 30],
-    "daily_loss_cap": [-0.1],
-    "atr_periods": [21],
-    "cooloff_bars": [14, 21, 28],
+    "interval": ["15min"],
+    "cooldowns": [10, 20, 30],
+    "daily_loss_cap": [-0.1, -0.15],
+    "atr_periods": [21, 50],
+    "cooloff_bars": [14],
     "sensitivity": [1.5, 2.5],
-    "growth": [50],
+    "growth": [100],
     "hard_stop_atr" : [2.0],
-    "max_bars" : [80],
+    "max_bars" : [50],
     "trail_atr" : [2.5]
 }
 

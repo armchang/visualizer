@@ -21,7 +21,7 @@ def search_optimal_settings(pair, strategy_path):
     best_config = None
     best_df = best_equity_df = best_trades_df = best_metrics = None
 
-    with tqdm(param_grid, desc="Running backtests", unit="combo", ncols=120) as pbar:
+    with tqdm(param_grid, desc="Running backtests", unit="combo") as pbar:
         for interval, cooldown, daily_loss_cap, atr, cooloff_bars, sensitivity, growth, hard_stop_atr, max_bars, trail_atr in pbar:
             # Apply config
             config.RESAMPLE_INTERVAL            = interval

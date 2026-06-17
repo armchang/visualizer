@@ -12,7 +12,7 @@ if __name__ == "__main__":
     clear.run()
 
     config.PAIR_NAME = "BTCUSDT"
-    config.STRATEGY = 'scripts.strategies.trendline_break_retest'
+    config.STRATEGY = 'scripts.strategies.ema_crossover'
     choice = input("Do you want to search for optimal settings? (y/n): ").strip().lower()
 
     if choice == "y":

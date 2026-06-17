@@ -7,7 +7,7 @@ PROJECT_ROOT = Path("D:/Projects/Python/dataspider")
 # Absolute path to the SQLite database
 DATABASE_PATH = PROJECT_ROOT / 'datas' / 'dataspider.db'
 
-PAIR_NAME = os.environ.get("TRADING_PAIR", "BTCUSDT")
+PAIR_NAME = os.environ.get("TRADING_PAIR", "ETHUSDT")
 DAILY_LOSS_CAP = -0.1
 COOLDOWN_BARS = 25
 RESAMPLE_INTERVAL = "4h"

@@ -9,7 +9,8 @@ os.makedirs(LOG_DIR, exist_ok=True)
 def log(best_config, best_result):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     # Unique filename with timestamp
-    log_file = os.path.join(LOG_DIR, f"best_configs_{best_config['pair']}_{best_config['strategy']}.log")
+    strategy_name = best_config.get("strategy_name", best_config["strategy"].rsplit(".", 1)[-1])
+    log_file = os.path.join(LOG_DIR, f"best_configs_{best_config['pair']}_{strategy_name}.log")
     with open(log_file, "a") as f:
         f.write(f"[{timestamp}] Pair Name: {best_config['pair']}, Best Balance={best_result:.2f}, Config={best_config}\n")
 

@@ -52,11 +52,10 @@ def search_optimal_settings(pair, strategy_path):
                     "growth": growth,
                     "pair": config.PAIR_NAME,
                     "hard_stop_atr" : hard_stop_atr,
-                    "max_bar" : max_bars,
+                    "max_bars" : max_bars,
                     "trail_atr" : trail_atr,
-                    # add these:
-                    "strategy_path": strategy_path,
-                    "strategy": strategy_path.rsplit(".", 1)[-1]
+                    "strategy": strategy_path,
+                    "strategy_name": strategy_path.rsplit(".", 1)[-1]
                 }
                 best_df = df
                 best_equity_df = equity_df

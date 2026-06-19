@@ -28,6 +28,8 @@ class UTBotStrategy(BaseStrategy):
 
         df["ut_buy_signal"] = get_buy_signals(df["src"], df)
         df["ut_sell_signal"] = get_sell_signals(df["src"], df)
+        df["buy_signal"] = df["ut_buy_signal"]
+        df["sell_signal"] = df["ut_sell_signal"]
 
         # SMAs (used by exits / filters)
         for p in (20, 50, 100, 200):
@@ -209,3 +211,6 @@ class UTBotStrategy(BaseStrategy):
                 "qty": qty,
                 "equity": state.balance
             })
+
+
+Strategy = UTBotStrategy

@@ -177,3 +177,6 @@ class EMACrossover(BaseStrategy):
         df = get_signals(df, config.ATR_PERIOD, config.SENSITIVITY, config.USE_HEIKIN_ASHI)
 
         return df
+
+
+Strategy = EMACrossover

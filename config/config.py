@@ -1,11 +1,24 @@
 import os
 from pathlib import Path
 
-# Resolve the project root directory
-PROJECT_ROOT = Path("D:/Projects/Python/dataspider")
+# Local machine paths can live in ignored config/local_config.py.
+PROJECT_ROOT = Path(os.environ.get("DATASPIDER_PROJECT_ROOT", Path(__file__).resolve().parents[1])).expanduser()
+
+try:
+    from config import local_config
+except ModuleNotFoundError as exc:
+    if exc.name != "config.local_config":
+        raise
+    local_config = None
+
+if local_config and hasattr(local_config, "PROJECT_ROOT"):
+    PROJECT_ROOT = Path(local_config.PROJECT_ROOT).expanduser()
 
 # Absolute path to the SQLite database
 DATABASE_PATH = PROJECT_ROOT / 'datas' / 'dataspider.db'
+
+if local_config and hasattr(local_config, "DATABASE_PATH"):
+    DATABASE_PATH = Path(local_config.DATABASE_PATH).expanduser()
 
 PAIR_NAME = os.environ.get("TRADING_PAIR", "ETHUSDT")
 DAILY_LOSS_CAP = -0.1

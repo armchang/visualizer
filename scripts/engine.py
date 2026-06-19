@@ -5,11 +5,23 @@ from scripts import backtest, compute, fetch, metric
 from scripts.risk_controls import volatility
 from scripts.risk_controls import pattern_engineering
 from scripts.util import rule_logger, backtest_util
-from scripts.strategies.ema_crossover import EMACrossover
-from scripts.strategies.trendline_break_retest import TrendlineBreakRetestStrategy
+from scripts.util.param_grid_builder import load_strategy_module
+
+
+def load_strategy(strategy_path):
+    if "." not in strategy_path:
+        strategy_path = f"scripts.strategies.{strategy_path}"
+
+    strategy_mod = load_strategy_module(strategy_path)
+
+    if not hasattr(strategy_mod, "Strategy"):
+        raise RuntimeError(f"{strategy_path} does not expose a Strategy class")
+
+    return strategy_mod.Strategy()
+
 
 def run(config):
-    strategy = TrendlineBreakRetestStrategy()
+    strategy = load_strategy(config.STRATEGY)
 
     df = fetch.get_ohlcv_data(config.DATABASE_PATH, config.TABLE_NAME, config.PAIR_NAME)                                # Fetch all data based on config.PAIR_NAME         
     df = fetch.resample_ohlcv(df, config.RESAMPLE_INTERVAL)                                                             # Recompute data based on timeframe
@@ -34,4 +46,3 @@ def run(config):
     metrics = metric.compute_metrics(equity_df, trades_df, config.RESAMPLE_INTERVAL)                                    # Retrieves equity, returns, averages, etc.
 
     return df, equity_df, trades_df, metrics
-

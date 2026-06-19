@@ -364,3 +364,6 @@ class TrendlineBreakRetestStrategy(BaseStrategy):
         state.entry_bar = None
 
         return True
+
+
+Strategy = TrendlineBreakRetestStrategy

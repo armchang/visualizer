@@ -23,7 +23,12 @@ def load_strategy(strategy_path):
 def run(config):
     strategy = load_strategy(config.STRATEGY)
 
-    df = fetch.get_ohlcv_data(config.DATABASE_PATH, config.TABLE_NAME, config.PAIR_NAME)                                # Fetch all data based on config.PAIR_NAME         
+    df = fetch.get_ohlcv_data(
+        config.DATABASE_TYPE,
+        config.DATABASE_URL,
+        config.TABLE_NAME,
+        config.PAIR_NAME,
+    )
     df = fetch.resample_ohlcv(df, config.RESAMPLE_INTERVAL)                                                             # Recompute data based on timeframe
     df = strategy.compute_signals(df, config)
 

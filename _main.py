@@ -27,10 +27,15 @@ def normalize_strategy_path(strategy_path):
     return strategy_path
 
 
+def prompt_for_pair(default_pair):
+    pair = input(f"Trading pair [{default_pair}]: ").strip().upper()
+    return pair or default_pair
+
+
 if __name__ == "__main__":
     clear.run()
 
-    config.PAIR_NAME = "BTCUSDT"
+    config.PAIR_NAME = prompt_for_pair(config.PAIR_NAME)
 
     print("Choose strategy:")
     for key, label in STRATEGY_LABELS.items():

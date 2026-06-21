@@ -14,13 +14,26 @@ except ModuleNotFoundError as exc:
 if local_config and hasattr(local_config, "PROJECT_ROOT"):
     PROJECT_ROOT = Path(local_config.PROJECT_ROOT).expanduser()
 
-# Absolute path to the SQLite database
-DATABASE_PATH = PROJECT_ROOT / 'datas' / 'dataspider.db'
+# Keep these names aligned with DataSpider so both projects can share database
+# configuration.
+DATABASE_TYPE = os.environ.get("DATABASE_TYPE", "postgresql").lower()
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://postgres:genius1019@localhost:5433/dataspider",
+)
 
-if local_config and hasattr(local_config, "DATABASE_PATH"):
-    DATABASE_PATH = Path(local_config.DATABASE_PATH).expanduser()
+if local_config and hasattr(local_config, "DATABASE_TYPE"):
+    DATABASE_TYPE = local_config.DATABASE_TYPE.lower()
 
-PAIR_NAME = os.environ.get("TRADING_PAIR", "ETHUSDT")
+if local_config and hasattr(local_config, "DATABASE_URL"):
+    DATABASE_URL = local_config.DATABASE_URL
+
+SUPPORTED_DATABASE_TYPES = {"postgresql", "sqlite"}
+if DATABASE_TYPE not in SUPPORTED_DATABASE_TYPES:
+    supported = ", ".join(sorted(SUPPORTED_DATABASE_TYPES))
+    raise ValueError(f"Unsupported DATABASE_TYPE {DATABASE_TYPE!r}; expected one of: {supported}")
+
+PAIR_NAME = os.environ.get("TRADING_PAIR", "BTCUSDT").strip().upper() or "BTCUSDT"
 DAILY_LOSS_CAP = -0.1
 COOLDOWN_BARS = 25
 RESAMPLE_INTERVAL = "4h"

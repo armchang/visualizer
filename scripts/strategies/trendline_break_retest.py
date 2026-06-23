@@ -5,7 +5,7 @@ from scripts.strategies.base_strategy import BaseStrategy
 from scripts.compute import get_atr_wilder
 
 search_criteria = {
-    "interval": ["15min"],
+    "interval": ["15min", "1h", "4h", "1d"],
     "cooldowns": [10, 20, 30],
     "daily_loss_cap": [-0.1, -0.15],
     "atr_periods": [21, 50],

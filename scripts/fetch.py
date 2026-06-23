@@ -69,17 +69,3 @@ def crop_date_range(df, years):
     start_date = end_date - pd.DateOffset(years=years)
 
     return df.loc[start_date:end_date]
-
-def resample_ohlcv(df, interval):
-    resampled = df.resample(interval).agg({
-        "open": "first",
-        "high": "max",
-        "low": "min",
-        "close": "last",
-        "volume": "sum"
-    }).dropna()
-
-    # ✅ Restore open_time column using the resampled index
-    resampled["open_time"] = resampled.index
-
-    return resampled

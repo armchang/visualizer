@@ -1,0 +1,1 @@
+[2026-06-21 16:21:41] Pair Name: PAXGUSDT, Best Balance=1297.44, Config={'interval': '4h', 'cooldown': 10, 'daily_loss_cap': -0.1, 'atr': 21, 'cooloff_bars': 14, 'sensitivity': 2.5, 'growth': 30, 'pair': 'PAXGUSDT', 'hard_stop_atr': 1.5, 'max_bars': 40, 'trail_atr': 2.0, 'strategy': 'scripts.strategies.ema_crossover', 'strategy_name': 'ema_crossover'}

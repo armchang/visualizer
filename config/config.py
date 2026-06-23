@@ -69,3 +69,12 @@ BACKTEST_MAX_LOSS_PCTG = 0.015
 MAX_BARS_IN_TRADE = 40
 TRAIL_ATR = 2.0
 HARD_STOP_ATR = 1.5
+
+# Optional EMA + LSTM entry filter. Leave MODEL_PATH as None to resolve a model
+# such as ml/models/btcusdt_4h_lstm.keras from the selected pair and interval.
+LSTM_MODEL_PATH = None
+LSTM_BUY_THRESHOLD = 0.60
+LSTM_SELL_THRESHOLD = 0.40
+LSTM_PREDICTION_BATCH_SIZE = 2048
+LSTM_OUT_OF_SAMPLE_ONLY = True
+LSTM_FEAR_GREED_CSV_PATH = None

@@ -12,12 +12,14 @@ STRATEGIES = {
     "1": "scripts.strategies.ema_crossover",
     "2": "scripts.strategies.trendline_break_retest",
     "3": "scripts.strategies.utbot_strategy",
+    "4": "scripts.strategies.lstm_filter_strategy",
 }
 
 STRATEGY_LABELS = {
     "1": "EMA Crossover",
     "2": "Trendline Break Retest",
     "3": "UT Bot",
+    "4": "EMA + LSTM Entry Filter",
 }
 
 
@@ -48,6 +50,12 @@ if __name__ == "__main__":
     choice = input("Do you want to search for optimal settings? (y/n): ").strip().lower()
 
     if choice == "y":
+        strategy_module = __import__(config.STRATEGY, fromlist=["search_criteria"])
+        if not hasattr(strategy_module, "search_criteria"):
+            raise ValueError(
+                f"{STRATEGY_LABELS.get(strategy_choice, config.STRATEGY)} does not define "
+                "search_criteria. Run it as a normal backtest instead."
+            )
         # Run full search
         best_config, best_result, df, equity_df, trades_df, metrics = sos.search_optimal_settings(config.PAIR_NAME, config.STRATEGY)
 

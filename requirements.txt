@@ -1,1 +1,6 @@
+flask
+numpy
+openpyxl
+pandas
 psycopg[binary]
+tqdm

@@ -2,3 +2,5 @@ venv/
 __pycache__/
 .DS_Store
 config/local_config.py
+ml/models/*.keras
+ml/models/*.metadata.json

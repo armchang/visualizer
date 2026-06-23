@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 search_criteria = {
-    "interval": ["4h"],
+    "interval": ["15min", "1h", "4h", "1d"],
     "cooldowns": [10, 15],
     "daily_loss_cap": [-0.1, -0.2],
     "atr_periods": [7, 14, 21, 28],
@@ -21,8 +21,6 @@ search_criteria = {
 
 
 class EMACrossover(BaseStrategy):
-
-    
 
     def prepare(self, df, config):
         df = bu.add_trend_filter(df)

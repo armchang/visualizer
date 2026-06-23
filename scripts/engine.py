@@ -1,6 +1,7 @@
 
 import numpy as np
 import pandas as pd
+from data.market_data_loader import resample_ohlcv
 from scripts import backtest, compute, fetch, metric
 from scripts.risk_controls import volatility
 from scripts.risk_controls import pattern_engineering
@@ -29,7 +30,7 @@ def run(config):
         config.TABLE_NAME,
         config.PAIR_NAME,
     )
-    df = fetch.resample_ohlcv(df, config.RESAMPLE_INTERVAL)                                                             # Recompute data based on timeframe
+    df = resample_ohlcv(df, config.RESAMPLE_INTERVAL)                                                                   # Recompute data based on timeframe
     df = strategy.compute_signals(df, config)
 
     if "signal" not in df.columns:

@@ -6,10 +6,26 @@ from config import config
 from scripts import fetch
 
 
+def normalize_interval(interval):
+    """Return a pandas-safe interval alias.
+
+    Pandas deprecated ambiguous lowercase `m` aliases. In this project users may
+    naturally type `1m` for one minute, so normalize that to `1min` before
+    calling resample/Timedelta.
+    """
+    value = str(interval).strip()
+    lower = value.lower()
+    if lower.endswith("m") and not lower.endswith("min"):
+        number = lower[:-1]
+        if number.isdigit():
+            return f"{number}min"
+    return value
+
+
 def load_market_data(pair=None, interval=None, database_type=None, database_url=None):
     """Return OHLCV candles for one pair at the requested interval."""
     pair = (pair or config.PAIR_NAME).strip().upper()
-    interval = interval or config.RESAMPLE_INTERVAL
+    interval = normalize_interval(interval or config.RESAMPLE_INTERVAL)
     frame = load_ohlcv_from_db(pair, database_type, database_url)
     return resample_ohlcv(frame, interval)
 
@@ -30,6 +46,9 @@ def load_ohlcv_from_db(pair=None, database_type=None, database_url=None):
 
 def resample_ohlcv(frame, interval, source_interval=None, drop_incomplete=False):
     """Aggregate OHLCV candles into a larger pandas-compatible interval."""
+    interval = normalize_interval(interval)
+    source_interval = normalize_interval(source_interval) if source_interval else None
+
     resampled = frame.resample(interval).agg(
         {
             "open": "first",
